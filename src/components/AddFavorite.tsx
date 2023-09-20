@@ -68,6 +68,7 @@ const AddFavorite: React.FC<AddFavoriteProps> = ({ packages, onAddFavourites }) 
 
         if (data && data.results) {
           setSearchResults(data.results);
+          sessionStorage.setItem("favoritePackages", JSON.stringify(data.results));
         } else {
           setSearchResults([]);
         }
