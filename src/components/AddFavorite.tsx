@@ -4,6 +4,8 @@ import Button from "../ReusableComponents/Button";
 import Input from "../ReusableComponents/Input";
 import TextArea from "../ReusableComponents/TextArea";
 
+const LOCAL_STORAGE_KEY = "favoritePackages";
+
 interface Package {
   id: number;
   name: string;
@@ -15,31 +17,46 @@ interface AddFavoriteProps {
   onAddFavourites: (favorite: Package) => void;
 }
 
-const AddFavorite: React.FC<AddFavoriteProps> = ({ packages, onAddFavourites }) => {
+const AddFavorite: React.FC<AddFavoriteProps> = ({
+  packages,
+  onAddFavourites,
+}) => {
   const [searchText, setSearchText] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [why, setWhy] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const storedFavorites = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedFavorites) {
+      setSearchResults(JSON.parse(storedFavorites));
+    }
+  }, []);
+
   const handleAddFavorite = () => {
-    if (!selectedPackage && !why) {
+    if (!selectedPackage || !why) {
       alert("Please select a package and provide a reason.");
       return;
     }
 
-    // Validation: Check if the selected package is already in favorites
+    //Checking if the selected package is already in favorites
     if (packages.some((pkg) => pkg.name === selectedPackage)) {
       alert("This package is already in your favorites.");
       return;
     }
 
     // Add to favorites
-    onAddFavourites({
+    const newFavorite: Package = {
       id: Date.now(), // Generate a unique ID
       name: selectedPackage,
       why,
-    });
+    };
+
+    const updatedFavorites = [...packages, newFavorite];
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedFavorites));
+
+    onAddFavourites(newFavorite);
 
     // Clear form fields
     setSelectedPackage("");
@@ -68,7 +85,10 @@ const AddFavorite: React.FC<AddFavoriteProps> = ({ packages, onAddFavourites }) 
 
         if (data && data.results) {
           setSearchResults(data.results);
-          sessionStorage.setItem("favoritePackages", JSON.stringify(data.results));
+          sessionStorage.setItem(
+            "favoritePackages",
+            JSON.stringify(data.results)
+          );
         } else {
           setSearchResults([]);
         }
@@ -92,7 +112,9 @@ const AddFavorite: React.FC<AddFavoriteProps> = ({ packages, onAddFavourites }) 
         type="text"
         value={searchText}
         id="searchInput"
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setSearchText(e.target.value)
+        }
         placeholder="Type to search packages..."
         className="w-full p-2 border rounded-md focus:ring focus:ring-blue-300"
       />
@@ -102,16 +124,16 @@ const AddFavorite: React.FC<AddFavoriteProps> = ({ packages, onAddFavourites }) 
       <p className="mt-4 mb-2">Results:</p>
       <ul>
         {searchResults.map((pkg) => (
-          <li key={pkg.package.name} className="mb-2">
+          <li key={pkg?.package?.name} className="mb-2">
             <label className="flex items-center">
               <Input
                 type="radio"
-                value={pkg.package.name}
+                value={pkg?.package?.name}
                 // name="selectedPackage"
-                onChange={() => setSelectedPackage(pkg.package.name)}
+                onChange={() => setSelectedPackage(pkg?.package?.name)}
                 className="mr-2"
               />
-              {pkg.package.name}
+              {pkg?.package?.name}
             </label>
           </li>
         ))}
@@ -123,7 +145,9 @@ const AddFavorite: React.FC<AddFavoriteProps> = ({ packages, onAddFavourites }) 
       <TextArea
         id="favoriteReason"
         value={why}
-        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setWhy(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+          setWhy(e.target.value)
+        }
         placeholder="Enter your reason here..."
         rows={4}
         className="w-full p-2 border rounded-md focus:ring focus:ring-blue-300"
@@ -136,6 +160,6 @@ const AddFavorite: React.FC<AddFavoriteProps> = ({ packages, onAddFavourites }) 
       />
     </div>
   );
-}
+};
 
 export default AddFavorite;
