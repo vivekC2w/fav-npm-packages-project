@@ -63,7 +63,6 @@ function App() {
             path="/favorites"
             element={
               <Favorites
-                favorites={favorites}
                 onDelete={handleDeleteFavorite}
                 onEdit={handleEditFavorite}
               />
